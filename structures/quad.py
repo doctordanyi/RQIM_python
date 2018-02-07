@@ -11,13 +11,8 @@ class Quad:
         self.corners = tuple(corners)
 
     @classmethod
-    def create_from_params(cls,
-                           base_length,
-                           b_angle,
-                           c_angle,
-                           b_multiplier,
-                           c_multiplier,
-                           orientation):
+    def create_from_params(cls, base_length, b_angle, c_angle,
+                           b_multiplier, c_multiplier, orientation):
         cos = np.cos([b_angle, np.pi - c_angle])
         sin = np.sin([b_angle, np.pi - c_angle])
 
@@ -32,7 +27,12 @@ class Quad:
             rot = mc.create_2d_rotation(orientation)
             corners = [np.dot(rot, x) for x in corners]
 
+        corners = [np.around(x, cls.__round_digits) for x in corners]
         return cls(corners)
+
+    @classmethod
+    def create_from_corners(cls, end1, inner1, inner2, end2):
+        return cls([end1, inner1, inner2, end2])
 
     @classmethod
     def create_random(cls):
