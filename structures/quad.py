@@ -1,6 +1,6 @@
 import numpy as np
 import math as m
-import utils.math_common as mc
+import utils.geometry as geom
 
 
 class Quad:
@@ -9,6 +9,13 @@ class Quad:
 
     def __init__(self, corners):
         self.corners = tuple(corners)
+
+    def __str__(self):
+        str = "Quad ("
+        for corner in self.corners:
+            str = str + "(" + corner[0] + "," + corner[1] + "),"
+        str = str + ")"
+        return str
 
     @classmethod
     def create_from_params(cls, base_length, b_angle, c_angle,
@@ -24,8 +31,7 @@ class Quad:
                     sin[1] * base_length * c_multiplier)]
 
         if orientation:
-            rot = mc.create_2d_rotation(orientation)
-            corners = [np.dot(rot, x) for x in corners]
+            corners = [geom.rotate(x, orientation) for x in corners]
 
         corners = [np.around(x, cls.__round_digits) for x in corners]
         return cls(corners)
@@ -36,7 +42,21 @@ class Quad:
 
     @classmethod
     def create_random(cls):
-        return cls(end1=(0, 1), end2=(0, 0), inner1=(1, 0), inner2=(1, 1))
+        return cls(((0, 1), (0, 0), (1, 0), (1, 1)))
+
+    def rotate(self, orientation):
+        """Rotates the current quad with [orientation] radians. Returns a new instance"""
+        corners = [geom.rotate(x, orientation) for x in self.corners]
+        corners = [np.around(x, self.__round_digits) for x in corners]
+        return Quad(corners)
+
+    def get_base_length(self):
+        return geom.distance(self.corners[1], self.corners[2])
+
+    def get_area(self):
+        a = (self.corners[0][0] - self.corners[2][0], self.corners[0][1] - self.corners[2][1])
+        b = (self.corners[1][0] - self.corners[3][0], self.corners[1][1] - self.corners[3][1])
+        return m.sqrt(0.5 * m.fabs((a[0] - b[1]) * (a[1] - b[0])))
 
 
 def test():
