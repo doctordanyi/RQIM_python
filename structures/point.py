@@ -17,3 +17,9 @@ class Point2D:
     @y.setter
     def y(self, y):
         self.coordinates[0] = y
+
+    def __str__(self):
+        return "({},{})".format(self.x, self.y)
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__, str(self))
