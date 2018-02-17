@@ -1,6 +1,8 @@
 import numpy as np
 import math as m
+from structures.point import Point2D
 import utils.geometry as geom
+import random
 
 
 class Quad:
@@ -8,14 +10,14 @@ class Quad:
     __round_digits = 10
 
     def __init__(self, corners):
-        self.corners = tuple(corners)
+        self.corners = tuple([Point2D(p[0], p[1]) for p in corners])
 
     def __str__(self):
-        str = "Quad ("
+        str_ = "Quad ("
         for corner in self.corners:
-            str = str + "(" + corner[0] + "," + corner[1] + "),"
-        str = str + ")"
-        return str
+            str_ = str_ + str(corner) + ","
+        str_ = str_ + ")"
+        return str_
 
     @classmethod
     def create_from_params(cls, base_length, b_angle, c_angle,
@@ -41,8 +43,13 @@ class Quad:
         return cls([end1, inner1, inner2, end2])
 
     @classmethod
-    def create_random(cls):
-        return cls(((0, 1), (0, 0), (1, 0), (1, 1)))
+    def create_random(cls, a, ca_min, ca_max, alpha_min, alpha_max):
+        return cls.create_from_params(base_length=a,
+                                      b_angle=random.uniform(alpha_min, alpha_max),
+                                      c_angle=random.uniform(alpha_min, alpha_max),
+                                      b_multiplier=random.uniform(ca_min, ca_max),
+                                      c_multiplier=random.uniform(ca_min, ca_max),
+                                      orientation=random.uniform(0, 2 * m.pi))
 
     def rotate(self, orientation):
         """Rotates the current quad with [orientation] radians. Returns a new instance"""
@@ -54,14 +61,16 @@ class Quad:
         return geom.distance(self.corners[1], self.corners[2])
 
     def get_area(self):
-        a = (self.corners[0][0] - self.corners[2][0], self.corners[0][1] - self.corners[2][1])
-        b = (self.corners[1][0] - self.corners[3][0], self.corners[1][1] - self.corners[3][1])
+        a = (self.corners[0].x - self.corners[2].x, self.corners[0].y - self.corners[2].y)
+        b = (self.corners[1].x - self.corners[3].x, self.corners[1].y - self.corners[3].y)
         return m.sqrt(0.5 * m.fabs((a[0] - b[1]) * (a[1] - b[0])))
 
 
 def test():
-    quad = Quad.create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, 0)
+    quad = Quad.create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, m.pi / 4)
     print(quad.corners)
+    for i in range(20):
+        print(Quad.create_random(0.5, 0.2, 1, 0, 2))
 
 
 if __name__ == "__main__":
