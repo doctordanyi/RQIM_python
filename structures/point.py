@@ -1,25 +1,17 @@
-class Point2D:
-    def __init__(self, coordinates=(0, 0)):
-        self.coordinates = coordinates
+from collections import namedtuple
+from utils.geometry import rotate
 
-    @property
-    def x(self):
-        return self.coordinates[0]
 
-    @x.setter
-    def x(self, x):
-        self.coordinates[0] = x
+class Point2D(namedtuple("Point2D", "x y")):
+    def __new__(cls, x, y):
+        return super(Point2D, cls).__new__(cls, x, y)
 
-    @property
-    def y(self):
-        return self.coordinates[1]
+    def rotate(self, angle):
+        """Rotate the point by [angle] radians around origin"""
+        x, y = rotate(self, angle)
+        return Point2D(x, y)
 
-    @y.setter
-    def y(self, y):
-        self.coordinates[0] = y
+    def translate(self, other_point):
+        """Translates a 2D point with (x,y)"""
+        return Point2D(self.x + other_point[0], self.y + other_point[1])
 
-    def __str__(self):
-        return "({},{})".format(self.x, self.y)
-
-    def __repr__(self):
-        return "{}({})".format(self.__class__.__name__, str(self))
