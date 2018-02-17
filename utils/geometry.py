@@ -3,7 +3,7 @@ import numpy as np
 
 
 def distance(point_a, point_b):
-    return np.hypot(point_a[0] - point_b[0], point_a[1] - point_b[1])
+    return np.hypot(point_a.x - point_b.x, point_a.y - point_b.y)
 
 
 def create_2d_rotation(rads):
