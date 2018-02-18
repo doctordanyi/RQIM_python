@@ -3,11 +3,15 @@ import math as m
 from structures.point import Point2D
 import utils.geometry as geom
 import random
+from collections import namedtuple
 
 
 class Quad:
+    BoundingBox = namedtuple("BoundingBox", "x_min y_min x_max y_max")
 
     __round_digits = 10
+    __safety_margin = 36
+    __coord_bounds = BoundingBox(-0.5, -0.5, 0.5, 0.5)
 
     def __init__(self, corners):
         self.corners = tuple([Point2D(p[0], p[1]) for p in corners])
@@ -53,7 +57,7 @@ class Quad:
 
     def rotate(self, orientation):
         """Rotates the current quad with [orientation] radians. Returns a new instance"""
-        corners = [geom.rotate(x, orientation) for x in self.corners]
+        corners = [x.rotate(orientation) for x in self.corners]
         corners = [np.around(x, self.__round_digits) for x in corners]
         return Quad(corners)
 
@@ -64,6 +68,30 @@ class Quad:
         a = (self.corners[0].x - self.corners[2].x, self.corners[0].y - self.corners[2].y)
         b = (self.corners[1].x - self.corners[3].x, self.corners[1].y - self.corners[3].y)
         return m.sqrt(0.5 * m.fabs((a[0] - b[1]) * (a[1] - b[0])))
+
+    def is_valid(self):
+        """Performs semantic check on the quad. return true if valid"""
+        for corner in self.corners:
+            if corner.x < self.__coord_bounds.x_min or \
+                    corner.x > self.__coord_bounds.x_max or \
+                    corner.y < self.__coord_bounds.y_min or \
+                    corner.y > self.__coord_bounds.y_max:
+                return False
+
+        if geom.line_segment_intersect(self.corners[0], self.corners[1],
+                                       self.corners[2], self.corners[3]):
+            return False
+
+        end_segment_dist = geom.line_line_distance(self.corners[0], self.corners[1],
+                                                   self.corners[2], self.corners[3])
+        if end_segment_dist * 6 < self.get_base_length():
+            return False
+
+        end_dist = geom.distance(self.corners[0], self.corners[3])
+        if end_dist * 6 < self.get_base_length():
+            return False
+
+        return True
 
 
 def test():
