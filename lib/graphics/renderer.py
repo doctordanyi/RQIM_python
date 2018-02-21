@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from structures.quad import Quad
+from lib.structures.quad import Quad
 from collections import namedtuple
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 import math as m
-from structures.point import Point2D
-import utils.geometry as geom
+from lib.structures.point import Point2D
+import lib.utils.geometry as geom
 import random
 from collections import namedtuple
 

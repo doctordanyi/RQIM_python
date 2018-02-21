@@ -1,5 +1,5 @@
 from collections import namedtuple
-from utils.geometry import rotate
+from lib.utils.geometry import rotate
 
 
 class Point2D(namedtuple("Point2D", "x y")):
