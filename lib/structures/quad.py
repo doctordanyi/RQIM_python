@@ -9,7 +9,6 @@ from collections import namedtuple
 class Quad:
     BoundingBox = namedtuple("BoundingBox", "x_min y_min x_max y_max")
 
-    __round_digits = 10
     __safety_margin = 36
     __coord_bounds = BoundingBox(-0.5, -0.5, 0.5, 0.5)
 
@@ -19,46 +18,13 @@ class Quad:
     def __str__(self):
         str_ = "Quad ("
         for corner in self.corners:
-            str_ = str_ + str(corner) + ","
+            str_.join(str(corner) + ",")
         str_ = str_ + ")"
         return str_
-
-    @classmethod
-    def create_from_params(cls, base_length, b_angle, c_angle,
-                           b_multiplier, c_multiplier, orientation):
-        cos = np.cos([b_angle, np.pi - c_angle])
-        sin = np.sin([b_angle, np.pi - c_angle])
-
-        corners = [(cos[0] * base_length * b_multiplier - base_length / 2,
-                    sin[0] * base_length * b_multiplier),
-                   (-base_length / 2, 0),
-                   (base_length / 2, 0),
-                   (cos[1] * base_length * c_multiplier + base_length / 2,
-                    sin[1] * base_length * c_multiplier)]
-
-        if orientation:
-            corners = [geom.rotate(x, orientation) for x in corners]
-
-        corners = [np.around(x, cls.__round_digits) for x in corners]
-        return cls(corners)
-
-    @classmethod
-    def create_from_corners(cls, end1, inner1, inner2, end2):
-        return cls([end1, inner1, inner2, end2])
-
-    @classmethod
-    def create_random(cls, a, ca_min, ca_max, alpha_min, alpha_max):
-        return cls.create_from_params(base_length=a,
-                                      b_angle=random.uniform(alpha_min, alpha_max),
-                                      c_angle=random.uniform(alpha_min, alpha_max),
-                                      b_multiplier=random.uniform(ca_min, ca_max),
-                                      c_multiplier=random.uniform(ca_min, ca_max),
-                                      orientation=random.uniform(0, 2 * m.pi))
 
     def rotate(self, orientation):
         """Rotates the current quad with [orientation] radians. Returns a new instance"""
         corners = [x.rotate(orientation) for x in self.corners]
-        corners = [np.around(x, self.__round_digits) for x in corners]
         return Quad(corners)
 
     def get_base_length(self):
@@ -94,11 +60,41 @@ class Quad:
         return True
 
 
+def create_from_params(base_length, b_angle, c_angle, b_multiplier, c_multiplier, orientation):
+    cos = np.cos([b_angle, np.pi - c_angle])
+    sin = np.sin([b_angle, np.pi - c_angle])
+
+    corners = [(cos[0] * base_length * b_multiplier - base_length / 2,
+                sin[0] * base_length * b_multiplier),
+               (-base_length / 2, 0),
+               (base_length / 2, 0),
+               (cos[1] * base_length * c_multiplier + base_length / 2,
+                sin[1] * base_length * c_multiplier)]
+
+    if orientation:
+        corners = [geom.rotate(x, orientation) for x in corners]
+
+    return Quad(corners)
+
+
+def create_random(a, ca_min, ca_max, alpha_min, alpha_max):
+    return create_from_params(base_length=a,
+                              b_angle=random.uniform(alpha_min, alpha_max),
+                              c_angle=random.uniform(alpha_min, alpha_max),
+                              b_multiplier=random.uniform(ca_min, ca_max),
+                              c_multiplier=random.uniform(ca_min, ca_max),
+                              orientation=random.uniform(0, 2 * m.pi))
+
+
+def create_from_corners(end1, inner1, inner2, end2):
+    return Quad([end1, inner1, inner2, end2])
+
+
 def test():
-    quad = Quad.create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, m.pi / 4)
+    quad = create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, m.pi / 4)
     print(quad.corners)
     for i in range(20):
-        print(Quad.create_random(0.5, 0.2, 1, 0, 2))
+        print(create_random(0.5, 0.2, 1, 0, 2))
 
 
 if __name__ == "__main__":
