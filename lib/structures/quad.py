@@ -1,8 +1,8 @@
 import numpy as np
 import math as m
+import random, json
 from lib.structures.point import Point2D
 import lib.utils.geometry as geom
-import random
 from collections import namedtuple
 
 
@@ -58,6 +58,13 @@ class Quad:
             return False
 
         return True
+
+
+class QuadEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Quad):
+            return dict(type='Quad', corners=o.corners, base_length=o.get_base_length())
+        return json.JSONEncoder.default(self, o)
 
 
 def create_from_params(base_length, b_angle, c_angle, b_multiplier, c_multiplier, orientation):
