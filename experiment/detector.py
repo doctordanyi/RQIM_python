@@ -30,21 +30,25 @@ class LSDQuadDetector(QuadDetector):
             min_idx = self._find_parallel(dir_vectors[i], temp_vectors)
             idx_pair = [min_idx, i]
             idx_pair.sort()
-            pairs.append((lines[idx_pair[0]], lines[idx_pair[1]]))
+            pairs.append((lines[idx_pair[0], 0, :], lines[idx_pair[1], 0, :]))
 
         pairs = np.stack(pairs)
-        pairs = np.unique(pairs)
+        pairs = np.unique(pairs, axis=0)
         return pairs
+
+    def _merge_pairs(self, pairs):
+        pass
 
     def detect_quad(self, img):
         lines, widths, prec, nfa = self.lsd.detect(img)
         # Both edges of every line segment is found
         if lines.shape[0] == 6:
             pairs = self._find_pairs(lines)
+            lines_merged = self._merge_pairs(pairs)
 
 
 detector = LSDQuadDetector()
-img = cv2.imread("out/quad74.png", 0)
+img = cv2.imread("out/quad0.png", 0)
 detector.detect_quad(img)
 
 # mod_lines = []
