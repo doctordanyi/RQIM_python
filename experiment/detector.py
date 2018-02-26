@@ -37,7 +37,14 @@ class LSDQuadDetector(QuadDetector):
         return pairs
 
     def _merge_pairs(self, pairs):
-        pass
+        lines = []
+        for pair in pairs:
+            temp = np.copy(pair[1, 2:])
+            pair[1, 2:] = pair[1, 0:2]
+            pair[1, 0:2] = temp
+            lines.append([np.average(pair, axis=0)])
+
+        return np.stack(lines)
 
     def detect_quad(self, img):
         lines, widths, prec, nfa = self.lsd.detect(img)
@@ -45,10 +52,14 @@ class LSDQuadDetector(QuadDetector):
         if lines.shape[0] == 6:
             pairs = self._find_pairs(lines)
             lines_merged = self._merge_pairs(pairs)
+            drw_orig = self.lsd.drawSegments(img, lines_merged)
+            cv2.imshow("detected orig", drw_orig)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
 
 detector = LSDQuadDetector()
-img = cv2.imread("out/quad0.png", 0)
+img = cv2.imread("out/quad15.png", 0)
 detector.detect_quad(img)
 
 # mod_lines = []
