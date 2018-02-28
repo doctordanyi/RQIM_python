@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 import lib.utils.geometry as geom
+import lib.structures.basic_geometry as shapes
+import itertools
 
 
 class QuadDetector:
@@ -46,12 +48,26 @@ class LSDQuadDetector(QuadDetector):
 
         return np.stack(lines)
 
+    def _merge_endpoints(self, lines):
+        pairs = [pair for pair in itertools.combinations(lines, 2)]
+        distances = []
+        for pair in pairs:
+            l1 = shapes.create_line_segment_from_np(pair[0])
+            l2 = shapes.create_line_segment_from_np(pair[1])
+            distances.append(geom.line_line_distance(l1.a, l1.b, l2.a, l2.b))
+
+        pairs.pop(np.argmax(distances))
+        idx = np.in1d(pairs[0], pairs[1])
+        pass
+
+
     def detect_quad(self, img):
         lines, widths, prec, nfa = self.lsd.detect(img)
         # Both edges of every line segment is found
         if lines.shape[0] == 6:
             pairs = self._find_pairs(lines)
             lines_merged = self._merge_pairs(pairs)
+            self._merge_endpoints(lines_merged)
             drw_orig = self.lsd.drawSegments(img, lines_merged)
             cv2.imshow("detected orig", drw_orig)
             cv2.waitKey(0)
