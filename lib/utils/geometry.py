@@ -74,7 +74,7 @@ def line_segment_intersect(p1, p2, q1, q2):
 
 def line_point_distance(p1, p2, r):
     try:
-        u = (r.x - p1.x)*(p2.x - p1.x) + (r.y - p1.y)*(p2.y - p1.y) / (distance(p1, p2)**2)
+        u = ((r.x - p1.x)*(p2.x - p1.x) + (r.y - p1.y)*(p2.y - p1.y)) / (distance(p1, p2)**2)
         if u < 0:
             return distance(p1, r)
         if u > 1:

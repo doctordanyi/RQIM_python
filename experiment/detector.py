@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 import lib.utils.geometry as geom
 import lib.structures.basic_geometry as shapes
+import lib.structures.quad as quad
 import itertools
+import lib.graphics.renderer as rend
 
 
 class QuadDetector:
@@ -52,13 +54,33 @@ class LSDQuadDetector(QuadDetector):
         pairs = [pair for pair in itertools.combinations(lines, 2)]
         distances = []
         for pair in pairs:
-            l1 = shapes.create_line_segment_from_np(pair[0])
-            l2 = shapes.create_line_segment_from_np(pair[1])
+            l1 = shapes.create_line_segment_from_np(pair[0][0])
+            l2 = shapes.create_line_segment_from_np(pair[1][0])
             distances.append(geom.line_line_distance(l1.a, l1.b, l2.a, l2.b))
 
         pairs.pop(np.argmax(distances))
         idx = np.in1d(pairs[0], pairs[1])
-        pass
+        base = shapes.create_line_segment_from_np(np.concatenate(pairs[0], axis=1)[0, idx])
+        line_list = [shapes.create_line_segment_from_np(line[0]) for line in lines.tolist()]
+        line_list.remove(base)
+
+        # all sides are identified
+
+        outer = []
+        inner = []
+        for line in line_list:
+            distances = []
+            for end_point in line:
+                distances.append((geom.distance(base.a, end_point), geom.distance(base.b, end_point)))
+            distances = np.array(distances)
+            ind = np.unravel_index(np.argmin(distances, axis=None), distances.shape)
+            inner.append(base[ind[1]].average(line[ind[0]]))
+            outer.append(line[1-ind[0]])
+
+        return [outer[0].scale(1/600).translate((-0.5, -0.5)),
+                inner[0].scale(1/600).translate((-0.5, -0.5)),
+                inner[1].scale(1/600).translate((-0.5, -0.5)),
+                outer[1].scale(1/600).translate((-0.5, -0.5))]
 
 
     def detect_quad(self, img):
@@ -67,33 +89,7 @@ class LSDQuadDetector(QuadDetector):
         if lines.shape[0] == 6:
             pairs = self._find_pairs(lines)
             lines_merged = self._merge_pairs(pairs)
-            self._merge_endpoints(lines_merged)
-            drw_orig = self.lsd.drawSegments(img, lines_merged)
-            cv2.imshow("detected orig", drw_orig)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            corners = self._merge_endpoints(lines_merged)
+            return quad.Quad(corners)
 
-
-detector = LSDQuadDetector()
-img = cv2.imread("out/quad15.png", 0)
-detector.detect_quad(img)
-
-# mod_lines = []
-# for line in lines:
-#     print(line[0])
-#     delta = line[0, 2:4] - line[0, 0:2]
-#     delta = (delta / np.linalg.norm(delta)) * 5/2
-#     delta = geom.rotate(delta, np.pi / 2)
-#     delta = np.concatenate((delta, delta))
-#     print(delta)
-#     mod_lines.append([line[0] + delta])
-#
-# mod_lines = np.stack(mod_lines).astype(np.float32)
-# blank = np.zeros(img.shape, np.uint8)
-# drw_orig = lsd.drawSegments(blank, lines)
-# drw_mod = lsd.drawSegments(blank, mod_lines)
-# cv2.imshow("detected orig", drw_orig)
-# cv2.imshow("detected mod", drw_mod)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
 
