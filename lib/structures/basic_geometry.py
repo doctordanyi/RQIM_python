@@ -1,5 +1,6 @@
 from collections import namedtuple
-from lib.utils.geometry import rotate
+import lib.utils.geometry as geom
+import numpy as np
 
 
 class Point2D(namedtuple("Point2D", "x y")):
@@ -8,7 +9,7 @@ class Point2D(namedtuple("Point2D", "x y")):
 
     def rotate(self, angle):
         """Rotate the point by [angle] radians around origin"""
-        x, y = rotate(self, angle)
+        x, y = geom.rotate(self, angle)
         return Point2D(x, y)
 
     def translate(self, other_point):
@@ -22,10 +23,31 @@ class Point2D(namedtuple("Point2D", "x y")):
     def scale(self, factor):
         return Point2D(self.x * factor, self.y * factor)
 
-def create_line_segment_from_np(line):
-    return LineSegment2D(line[0:2], line[2:4])
+    def __add__(self, other):
+        return self.translate(other)
+
+    def __sub__(self, other):
+        return self.translate(-other)
+
+    def __neg__(self):
+        return Point2D(-self.x, -self.y)
 
 
-class LineSegment2D(namedtuple("LineSegment2D", "a b")):
-    def __new__(cls, a, b):
-        return super(LineSegment2D, cls).__new__(cls, Point2D(a[0], a[1]), Point2D(b[0], b[1]))
+def create_line_segment_from_np(line, width=None):
+    if width:
+        return LineSegment2D(line[0:2], line[2:4], width)
+
+    return LineSegment2D(line[0:2], line[2:4], 0)
+
+
+class LineSegment2D(namedtuple("LineSegment2D", "a b width")):
+    def __new__(cls, a, b, width):
+        return super(LineSegment2D, cls).__new__(cls, Point2D(a[0], a[1]), Point2D(b[0], b[1]), width)
+
+    def get_length(self):
+        return geom.distance(self.a, self.b)
+
+    def get_dir_vector(self):
+        dir_vector = self.b - self.a
+        norm = np.linalg.norm(dir_vector)
+        return Point2D(dir_vector[0] / norm, dir_vector[1] / norm)

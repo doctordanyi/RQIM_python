@@ -59,6 +59,12 @@ class Quad:
 
         return True
 
+    def abs_difference(self, other):
+        abs_diff = 0
+        for i in range(4):
+            abs_diff += geom.distance(self.corners[i], other.corners[i])
+
+        return abs_diff
 
 class QuadEncoder(json.JSONEncoder):
     def default(self, o):
