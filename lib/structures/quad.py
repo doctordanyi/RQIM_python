@@ -13,6 +13,10 @@ class Quad:
     __coord_bounds = BoundingBox(-0.5, -0.5, 0.5, 0.5)
 
     def __init__(self, corners):
+        # order te corners based on the x coordinate of inner points
+        if corners[1][0] > corners[2][0]:
+            corners[1], corners[2] = corners[2], corners[1]
+            corners[0], corners[3] = corners[3], corners[0]
         self.corners = tuple([Point2D(p[0], p[1]) for p in corners])
 
     def __str__(self):
@@ -65,6 +69,16 @@ class Quad:
             abs_diff += geom.distance(self.corners[i], other.corners[i])
 
         return abs_diff
+
+    def fix_winding(self):
+        area2 = (self.corners[1].x - self.corners[0].x) * (self.corners[1].y + self.corners[0].y) + \
+                (self.corners[2].x - self.corners[1].x) * (self.corners[2].y + self.corners[1].y) + \
+                (self.corners[3].x - self.corners[2].x) * (self.corners[3].y + self.corners[2].y) + \
+                (self.corners[0].x - self.corners[3].x) * (self.corners[0].y + self.corners[3].y)
+
+        if area2 > 0:
+            self.corners = (self.corners[3], self.corners[2], self.corners[0], self.corners[1])
+
 
 class QuadEncoder(json.JSONEncoder):
     def default(self, o):

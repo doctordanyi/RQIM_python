@@ -44,6 +44,9 @@ class LineSegment2D(namedtuple("LineSegment2D", "a b width")):
     def __new__(cls, a, b, width):
         return super(LineSegment2D, cls).__new__(cls, Point2D(a[0], a[1]), Point2D(b[0], b[1]), width)
 
+    def get_endpoints(self):
+        return (self.a, self.b)
+
     def get_length(self):
         return geom.distance(self.a, self.b)
 
@@ -51,3 +54,7 @@ class LineSegment2D(namedtuple("LineSegment2D", "a b width")):
         dir_vector = self.b - self.a
         norm = np.linalg.norm(dir_vector)
         return Point2D(dir_vector[0] / norm, dir_vector[1] / norm)
+
+    def get_norm_vector(self):
+        dir = self.get_dir_vector()
+        return dir.rotate(np.pi / 2)
