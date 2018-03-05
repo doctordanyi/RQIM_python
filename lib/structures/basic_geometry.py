@@ -23,6 +23,9 @@ class Point2D(namedtuple("Point2D", "x y")):
     def scale(self, factor):
         return Point2D(self.x * factor, self.y * factor)
 
+    def scale_inhomogen(self, factor_x, factor_y):
+        return Point2D(self.x * factor_x, self.y * factor_y)
+
     def __add__(self, other):
         return self.translate(other)
 

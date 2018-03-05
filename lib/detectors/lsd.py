@@ -5,12 +5,7 @@ import lib.structures.basic_geometry as shapes
 import lib.structures.quad as quad
 import itertools
 import lib.graphics.renderer as rend
-
-
-class QuadDetector:
-    """Abstract class for Quad detector interface definition"""
-    def detect_quad(self, img):
-        raise NotImplemented
+from lib.detectors.detector import QuadDetector
 
 
 class LSDQuadDetector(QuadDetector):
@@ -87,15 +82,20 @@ class LSDQuadDetector(QuadDetector):
             B = (line.a.x * line.b.y - line.b.x * line.a.y,
                  base.a.x * base.b.y - base.b.x * base.a.y)
             A = np.stack(A)
-            intersect = np.linalg.solve(A,B)
+            try:
+                intersect = np.linalg.solve(A,B)
+            except np.linalg.LinAlgError:
+                return None
+
             dist = [geom.distance(intersect, point) for point in line.get_endpoints()]
             inner.append(shapes.Point2D(intersect[0], intersect[1]))
             outer.append(line[np.argmax(dist)])
 
-        return [outer[0].scale(1/640).translate((-0.5, -0.5)),
-                inner[0].scale(1/640).translate((-0.5, -0.5)),
-                inner[1].scale(1/640).translate((-0.5, -0.5)),
-                outer[1].scale(1/640).translate((-0.5, -0.5))]
+        img_size = self.working_img.shape
+        return [outer[0].scale_inhomogen(1/img_size[0], 1/img_size[1]).translate((-0.5, -0.5)),
+                inner[0].scale_inhomogen(1/img_size[0], 1/img_size[1]).translate((-0.5, -0.5)),
+                inner[1].scale_inhomogen(1/img_size[0], 1/img_size[1]).translate((-0.5, -0.5)),
+                outer[1].scale_inhomogen(1/img_size[0], 1/img_size[1]).translate((-0.5, -0.5))]
 
 
     def _merge_endpoints(self, lines):
@@ -139,7 +139,9 @@ class LSDQuadDetector(QuadDetector):
             pairs = self._find_pairs(lines)
             lines_merged = self._merge_pairs_long(pairs)
             corners = self._find_corners(lines_merged)
-            return quad.Quad(corners)
+            if corners:
+                return quad.Quad(corners)
+            return None
 
 
 def test():

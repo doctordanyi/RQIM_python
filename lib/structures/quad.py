@@ -63,13 +63,6 @@ class Quad:
 
         return True
 
-    def abs_difference(self, other):
-        abs_diff = 0
-        for i in range(4):
-            abs_diff += geom.distance(self.corners[i], other.corners[i])
-
-        return abs_diff
-
     def fix_winding(self):
         area2 = (self.corners[1].x - self.corners[0].x) * (self.corners[1].y + self.corners[0].y) + \
                 (self.corners[2].x - self.corners[1].x) * (self.corners[2].y + self.corners[1].y) + \
@@ -115,6 +108,26 @@ def create_random(a, ca_min, ca_max, alpha_min, alpha_max):
 
 def create_from_corners(end1, inner1, inner2, end2):
     return Quad([end1, inner1, inner2, end2])
+
+
+def get_error_abs_sum(orig, other):
+    abs_diff = 0
+    for i in range(4):
+        abs_diff += geom.distance(orig.corners[i], other.corners[i])
+
+    return abs_diff
+
+
+def get_error_abs_avg(orig, other):
+    return get_error_abs_sum(orig, other) / 4
+
+
+def get_error_rel_avg(orig, other):
+    rel_diff_sum = 0
+    for i in range(4):
+        rel_diff_sum += geom.distance(orig.corners[i], other.corners[i]) / np.linalg.norm(orig.corners[i])
+
+    return (rel_diff_sum / 4)
 
 
 def test():
