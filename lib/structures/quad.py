@@ -80,6 +80,46 @@ class QuadEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
+class QuadGenerator:
+    def __init__(self, quads_per_scale = 100, base_lengths = [0.5], ca_range = [0.2, 1], alpha_range = [0.3, 2]):
+        self.quads_per_scale = quads_per_scale
+        self.scales = list(base_lengths)
+        self.ca_min = ca_range[0]
+        self.ca_max = ca_range[1]
+        self.alpha_min = alpha_range[0]
+        self.alpha_max = alpha_range[1]
+        self.quads = []
+
+    def generate(self):
+        for scale in self.scales:
+            i = 0
+            quads = []
+            while i < self.quads_per_scale:
+                q = create_random(scale, 0.2, 1, 0.3, 2)
+                if q.is_valid():
+                    quads.append(q)
+                    i += 1
+            self.quads.append(quads)
+
+    def clear_quads(self):
+        self.quads.clear()
+
+    def get_all_quads(self):
+        return [q for quad_list in self.quads for q in quad_list]
+
+    def save_to_json(self, filename):
+        with open(filename, 'w') as json_file:
+            ranges = {"ca_min": self.ca_min,
+                      "ca_max": self.ca_max,
+                      "alpha_min": self.alpha_min,
+                      "alpha_max": self.alpha_max}
+            header = {"quads_per_scale": self.quads_per_scale,
+                      "random_ranges": ranges,
+                      "scales": self.scales}
+            quads = [{"base_length"}]
+            json.dump(header, json_file, cls=QuadEncoder, separators=(',', ':'), indent=4)
+
+
 def create_from_params(base_length, b_angle, c_angle, b_multiplier, c_multiplier, orientation):
     cos = np.cos([b_angle, np.pi - c_angle])
     sin = np.sin([b_angle, np.pi - c_angle])
