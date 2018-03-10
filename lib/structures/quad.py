@@ -80,7 +80,20 @@ class QuadEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-class QuadGenerator:
+class QuadProvider:
+    """Abstract class defining the QuadProvider interface"""
+    def get_quads(self):
+        raise NotImplemented
+
+    def get_quad_groups(self):
+        """Should return an iterable of dictionaries containing the following information
+           group_by: name of the parameter used to create groups
+           param: the parameter of current group
+           quads: the list of quads in the current group"""
+        raise NotImplemented
+
+
+class QuadGenerator(QuadProvider):
     def __init__(self, quads_per_scale = 100, base_lengths = [0.5], ca_range = [0.2, 1], alpha_range = [0.3, 2]):
         self.quads_per_scale = quads_per_scale
         self.scales = list(base_lengths)
@@ -116,8 +129,17 @@ class QuadGenerator:
             header = {"quads_per_scale": self.quads_per_scale,
                       "random_ranges": ranges,
                       "scales": self.scales}
-            quads = [{"base_length"}]
-            json.dump(header, json_file, cls=QuadEncoder, separators=(',', ':'), indent=4)
+            quads = [{"nominal_base_length": base, "quads": quads} for (base, quads) in zip(self.scales, self.quads)]
+            data = {"generation_parameters": header,
+                    "data": quads}
+            json.dump(data, json_file, cls=QuadEncoder, separators=(',', ':'), indent=4)
+
+    def get_quads(self):
+        return self.get_all_quads()
+
+    def get_quad_groups(self):
+        for (base, quad_list) in zip(self.scales, self.quads):
+            yield dict(group_by="base_length", param=base, quads=quad_list)
 
 
 def create_from_params(base_length, b_angle, c_angle, b_multiplier, c_multiplier, orientation):
