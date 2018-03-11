@@ -34,6 +34,27 @@ class Quad:
     def get_base_length(self):
         return geom.distance(self.corners[1], self.corners[2])
 
+    def get_b_angle(self):
+        a = self.corners[0]-self.corners[1]
+        b = self.corners[2] - self.corners[1]
+        return np.arccos(np.dot(a,b) / (np.hypot(a.x, a.y)*np.hypot(b.x, b.y)))
+
+    def get_c_angle(self):
+        a = self.corners[3]-self.corners[2]
+        b = self.corners[1] - self.corners[2]
+        return np.arccos(np.dot(a, b) / (np.hypot(a.x, a.y)*np.hypot(b.x, b.y)))
+
+    def get_b_multiplier(self):
+        return geom.distance(self.corners[0], self.corners[1]) / self.get_base_length()
+
+    def get_c_multiplier(self):
+        return geom.distance(self.corners[3], self.corners[2]) / self.get_base_length()
+
+    def get_orientation(self):
+        base = self.corners[1] - self.corners[2]
+        base = base.rotate(np.pi / 2)
+        return np.arctan2(base.x, base.y)
+
     def get_area(self):
         a = (self.corners[0].x - self.corners[2].x, self.corners[0].y - self.corners[2].y)
         b = (self.corners[1].x - self.corners[3].x, self.corners[1].y - self.corners[3].y)
@@ -172,7 +193,7 @@ def create_from_corners(end1, inner1, inner2, end2):
     return Quad([end1, inner1, inner2, end2])
 
 
-def get_error_abs_sum(orig, other):
+def get_abs_sum_position_error(orig, other):
     abs_diff = 0
     for i in range(4):
         abs_diff += geom.distance(orig.corners[i], other.corners[i])
@@ -180,11 +201,11 @@ def get_error_abs_sum(orig, other):
     return abs_diff
 
 
-def get_error_abs_avg(orig, other):
-    return get_error_abs_sum(orig, other) / 4
+def get_abs_avg_position_error(orig, other):
+    return get_abs_sum_position_error(orig, other) / 4
 
 
-def get_error_rel_avg(orig, other):
+def get_rel_avg_position_error(orig, other):
     rel_diff_sum = 0
     for i in range(4):
         rel_diff_sum += geom.distance(orig.corners[i], other.corners[i]) / np.linalg.norm(orig.corners[i])
@@ -192,8 +213,46 @@ def get_error_rel_avg(orig, other):
     return rel_diff_sum / 4
 
 
+def get_abs_sum_angle_error(orig, other):
+    return abs(orig.get_b_angle() - other.get_b_angle()) + abs(orig.get_c_angle() - other.get_c_angle())
+
+
+def get_abs_avg_angle_error(orig, other):
+    return get_abs_sum_angle_error(orig, other) / 2
+
+
+def get_rel_avg_angle_error(orig, other):
+    b_angle_err = abs((orig.get_b_angle() - other.get_b_angle()) / orig.get_b_angle())
+    c_angle_err = abs((orig.get_c_angle() - other.get_c_angle()) / orig.get_c_angle())
+    return (b_angle_err + c_angle_err) / 2
+
+
+def get_abs_sum_multiplier_error(orig, other):
+    return abs(orig.get_b_multiplier() - other.get_b_multiplier()) + \
+           abs(orig.get_c_multiplier() - other.get_c_multiplier())
+
+
+def get_abs_avg_multiplier_error(orig, other):
+    return get_abs_sum_multiplier_error(orig, other) / 2
+
+
+def get_rel_avg_multiplier_error(orig, other):
+    b_multiplier_err = abs((orig.get_b_multiplier() - other.get_b_multiplier()) / orig.get_b_multiplier())
+    c_multiplier_err = abs((orig.get_c_multiplier() - other.get_c_multiplier()) / orig.get_c_multiplier())
+    return (b_multiplier_err + c_multiplier_err) / 2
+
+
+def get_abs_orientation_error(orig, other):
+    return abs(orig.get_orientation() - other.get_orientation())
+
+
+def get_rel_orientation_error(orig, other):
+    return abs((orig.get_orientation() - other.get_orientation()) / orig.get_orientation())
+
+
 def test():
-    quad = create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, m.pi / 4)
+    quad = create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, -np.pi / 2)
+    quad.get_orientation()
     print(quad.corners)
     for i in range(20):
         print(create_random(0.5, 0.2, 1, 0, 2))
