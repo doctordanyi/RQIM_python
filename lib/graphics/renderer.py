@@ -28,7 +28,7 @@ class Renderer:
     def render(self, obj):
         if type(obj) is Quad:
             img = np.zeros(self.size, np.uint8)
-            img[:] = (255, 255, 255)
+            img[:] = [255 for i in range(self.size[2])]
             self._render_quad(obj, img)
             return img
         else:

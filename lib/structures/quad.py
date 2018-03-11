@@ -189,7 +189,7 @@ def get_error_rel_avg(orig, other):
     for i in range(4):
         rel_diff_sum += geom.distance(orig.corners[i], other.corners[i]) / np.linalg.norm(orig.corners[i])
 
-    return (rel_diff_sum / 4)
+    return rel_diff_sum / 4
 
 
 def test():

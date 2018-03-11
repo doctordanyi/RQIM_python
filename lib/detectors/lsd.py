@@ -130,9 +130,12 @@ class LSDQuadDetector(QuadDetector):
 
     def detect_quad(self, img):
         self.working_img = img
-        lines, widths, prec, nfa = self.lsd.detect(img)
-        lines = [(np.concatenate((lines[i][0], widths[i]))) for i in range(lines.shape[0])]
-        lines = np.stack(lines)
+        try:
+            lines, widths, prec, nfa = self.lsd.detect(img)
+            lines = [(np.concatenate((lines[i][0], widths[i]))) for i in range(lines.shape[0])]
+            lines = np.stack(lines)
+        except AttributeError:
+            return None
 
         # Both edges of every line segment is found
         if lines.shape[0] == 6:
