@@ -34,5 +34,8 @@ det = detector.LSDQuadDetector()
 exp = Experiment(gen, rend, det)
 exp.steps.append(steps.GetRelativeCoordinateError())
 exp.steps.append(steps.GetRecognitionCount())
+exp.steps.append(steps.GetRelativeAngleError())
+exp.steps.append(steps.GetRelativeOrientationError())
+exp.steps.append(steps.GetRelativeMultiplierError())
 exp.run()
 
