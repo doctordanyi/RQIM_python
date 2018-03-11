@@ -29,13 +29,30 @@ gen = quad.QuadGenerator(quads_per_scale=250, base_lengths=numpy.arange(0.01, 0.
 gen.generate()
 gen.save_to_json("out/quads_generated.json")
 
+# Define error mean and dev test steps
+rel_coord = steps.GetErrorMeanAndDeviation(title="LSD: Relative Coordinate Error",
+                                           out_file_name="lsd_relative_coordinate_error",
+                                           error_function=quad.get_rel_avg_position_error)
+
+rel_angle = steps.GetErrorMeanAndDeviation(title="LSD: Relative Angle Error",
+                                           out_file_name="lsd_relative_angle_error",
+                                           error_function=quad.get_rel_avg_angle_error)
+
+rel_orient = steps.GetErrorMeanAndDeviation(title="LSD: Relative Orientation Error",
+                                            out_file_name="lsd_relative_orientation_error",
+                                            error_function=quad.get_rel_orientation_error)
+
+rel_multiplier = steps.GetErrorMeanAndDeviation(title="LSD: Relative Multiplier Error",
+                                                out_file_name="lsd_relative_multiplier_error",
+                                                error_function=quad.get_rel_avg_multiplier_error)
+
 rend = renderer.Renderer(height=640, width=640, channels=1)
 det = detector.LSDQuadDetector()
 exp = Experiment(gen, rend, det)
-exp.steps.append(steps.GetRelativeCoordinateError())
 exp.steps.append(steps.GetRecognitionCount())
-exp.steps.append(steps.GetRelativeAngleError())
-exp.steps.append(steps.GetRelativeOrientationError())
-exp.steps.append(steps.GetRelativeMultiplierError())
+exp.steps.append(rel_coord)
+exp.steps.append(rel_angle)
+exp.steps.append(rel_orient)
+exp.steps.append(rel_multiplier)
 exp.run()
 
