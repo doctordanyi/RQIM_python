@@ -4,6 +4,7 @@ import numpy as np
 import lib.graphics.renderer as rend
 import lib.structures.basic_geometry as geom
 import lib.utils.geometry as bg
+import lib.structures.quad as quad
 
 
 class HoughLinesQuadDetector(detector.QuadDetector):
@@ -63,35 +64,28 @@ class HoughLinesQuadDetector(detector.QuadDetector):
                 line_points = ((int((rho - x * cos) / sin), x) for x in range(img.shape[1]))
 
             line_points = (pt for pt in line_points if is_valid_index(pt, img.shape))
-            segment_points = [pt for pt in line_points if img[pt]]
+            segment_points = [(pt[1], pt[0]) for pt in line_points if img[pt]]
             segments.append(geom.LineSegment2D(segment_points[0], segment_points[-1], 0))
 
         return segments
 
+    def _scale_to_quad_space(self, corners):
+        img_size = self.working_img.shape
+        return [corner.scale_inhomogen(1/img_size[0], 1/img_size[1]).translate((-0.5, -0.5)) for corner in corners]
+
     def detect_quad(self, img):
+        self.working_img = img
         lines = self._find_lines(img)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray = cv2.threshold(gray, thresh=127, maxval=255, type=cv2.THRESH_BINARY_INV)[1]
         segments = self._find_segments(gray, lines)
-
-        for rho, theta in lines:
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
-
-            cv2.line(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-
+        line_segments = []
         for seg in segments:
-            cv2.line(img, (seg.a.y, seg.a.x), (seg.b.y, seg.b.x), (0,255,0), 2)
+            line_segments.append(np.concatenate(seg.get_endpoints()))
 
-        cv2.imshow("Lines", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        line_segments = np.stack(line_segments)
+        corners = self._find_corners(line_segments)
+        return quad.Quad(self._scale_to_quad_space(corners))
 
 
 def is_valid_index(idx, shape):
@@ -110,6 +104,7 @@ def test():
     renderer = rend.Renderer()
     img_rec = renderer.render(detected)
     img_det = cv2.cvtColor(img_rec, cv2.COLOR_BGR2GRAY)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     diff = img - img_det
     cv2.imshow("original", img)
     cv2.imshow("detected", img_det)
