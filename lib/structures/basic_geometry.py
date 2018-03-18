@@ -48,7 +48,7 @@ class LineSegment2D(namedtuple("LineSegment2D", "a b width")):
         return super(LineSegment2D, cls).__new__(cls, Point2D(a[0], a[1]), Point2D(b[0], b[1]), width)
 
     def get_endpoints(self):
-        return (self.a, self.b)
+        return self.a, self.b
 
     def get_length(self):
         return geom.distance(self.a, self.b)

@@ -250,6 +250,14 @@ def get_rel_orientation_error(orig, other):
     return abs((orig.get_orientation() - other.get_orientation()) / orig.get_orientation())
 
 
+def get_abs_base_length_error(orig, other):
+    return abs(orig.get_base_length() - other.get_base_length())
+
+
+def get_rel_base_length_error(orig, other):
+    return get_abs_base_length_error(orig, other) / orig.get_base_length()
+
+
 def test():
     quad = create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, -np.pi / 2)
     quad.get_orientation()
