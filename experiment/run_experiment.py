@@ -46,6 +46,10 @@ rel_multiplier = steps.GetErrorMeanAndDeviation(title="LSD: Relative Multiplier 
                                                 out_file_name="lsd_relative_multiplier_error",
                                                 error_function=quad.get_rel_avg_multiplier_error)
 
+rel_base_length = steps.GetErrorMeanAndDeviation(title="LSD: Relative Base length Error",
+                                                 out_file_name="lsd_relative_base_length_error",
+                                                 error_function=quad.get_rel_base_length_error)
+
 rend = renderer.Renderer(height=640, width=640, channels=1)
 det = detector.LSDQuadDetector()
 exp = Experiment(gen, rend, det)
@@ -54,5 +58,6 @@ exp.steps.append(rel_coord)
 exp.steps.append(rel_angle)
 exp.steps.append(rel_orient)
 exp.steps.append(rel_multiplier)
+exp.steps.append(rel_base_length)
 exp.run()
 
