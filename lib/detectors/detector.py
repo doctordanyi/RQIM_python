@@ -17,11 +17,14 @@ class QuadDetector:
             l2 = shapes.create_line_segment_from_np(pair[1])
             distances.append(geom.line_line_distance(l1.a, l1.b, l2.a, l2.b))
 
-        pairs.pop(np.argmax(distances))
-        idx = np.in1d(pairs[0], pairs[1])
-        base = shapes.create_line_segment_from_np(np.concatenate(pairs[0])[idx])
-        line_list = [shapes.create_line_segment_from_np(line) for line in lines.tolist()]
-        line_list.remove(base)
+        try:
+            pairs.pop(np.argmax(distances))
+            idx = np.in1d(pairs[0], pairs[1])
+            base = shapes.create_line_segment_from_np(np.concatenate(pairs[0])[idx])
+            line_list = [shapes.create_line_segment_from_np(line) for line in lines.tolist()]
+            line_list.remove(base)
+        except ValueError:
+            return None
 
         inner = []
         outer = []

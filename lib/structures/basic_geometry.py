@@ -58,6 +58,19 @@ class LineSegment2D(namedtuple("LineSegment2D", "a b width")):
         norm = np.linalg.norm(dir_vector)
         return Point2D(dir_vector[0] / norm, dir_vector[1] / norm)
 
+    def get_slope_angle(self):
+        direction_vec = self.get_dir_vector()
+        return np.arctan2(direction_vec[1], direction_vec[0])
+
     def get_norm_vector(self):
-        dir = self.get_dir_vector()
-        return dir.rotate(np.pi / 2)
+        direction = self.get_dir_vector()
+        return direction.rotate(np.pi / 2)
+
+
+def test_slope_angle():
+    line = LineSegment2D((0,0), (-1,0), 0)
+    print(line.get_slope_angle())
+
+
+if __name__ == "__main__":
+    test_slope_angle()
