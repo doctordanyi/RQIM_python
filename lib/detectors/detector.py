@@ -8,6 +8,10 @@ class BaseNotFound(Exception):
     pass
 
 
+class IntersectionNotFound(Exception):
+    pass
+
+
 class QuadDetector:
     """Base class for Quad detectors"""
     def detect_quad(self, img):
@@ -22,19 +26,16 @@ class QuadDetector:
             l2 = shapes.create_line_segment_from_np(pair[1])
             distances.append(geom.line_line_distance(l1.a, l1.b, l2.a, l2.b))
 
-        try:
-            pairs.pop(np.argmax(distances))
-            if pairs[0][0] in pairs[1]:
-                base = shapes.create_line_segment_from_np(pairs[0][0])
-            elif pairs[0][1] in pairs[1]:
-                base = shapes.create_line_segment_from_np(pairs[0][1])
-            else:
-                raise BaseNotFound
+        pairs.pop(np.argmax(distances))
+        if pairs[0][0] in pairs[1]:
+            base = shapes.create_line_segment_from_np(pairs[0][0])
+        elif pairs[0][1] in pairs[1]:
+            base = shapes.create_line_segment_from_np(pairs[0][1])
+        else:
+            raise BaseNotFound
 
-            line_list = [shapes.create_line_segment_from_np(line) for line in lines.tolist()]
-            line_list.remove(base)
-        except BaseNotFound:
-            return None
+        line_list = [shapes.create_line_segment_from_np(line) for line in lines.tolist()]
+        line_list.remove(base)
 
         inner = []
         outer = []
@@ -47,7 +48,7 @@ class QuadDetector:
             try:
                 intersect = np.linalg.solve(A,B)
             except np.linalg.LinAlgError:
-                return None
+                raise IntersectionNotFound
 
             dist = [geom.distance(intersect, point) for point in line.get_endpoints()]
             inner.append(shapes.Point2D(intersect[0], intersect[1]))

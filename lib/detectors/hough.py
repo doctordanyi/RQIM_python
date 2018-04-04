@@ -5,7 +5,7 @@ import lib.graphics.renderer as rend
 import lib.structures.basic_geometry as geom
 import lib.utils.geometry as bg
 import lib.structures.quad as quad
-import random
+from lib.detectors.detector import BaseNotFound, IntersectionNotFound
 
 
 class NoLinesDetected(Exception):
@@ -66,14 +66,16 @@ class HoughQuadDetector(detector.QuadDetector):
             line_segments.append(np.concatenate(seg.get_endpoints()))
 
         if len(line_segments) < 3:
+            print("Less than three")
             return None
 
         line_segments = np.stack(line_segments)
-        corners = self._find_corners(line_segments)
+        try:
+            corners = self._find_corners(line_segments)
+        except (BaseNotFound, IntersectionNotFound):
+            return None
 
-        if corners:
-            return quad.Quad(self._scale_to_quad_space(corners))
-        return None
+        return quad.Quad(self._scale_to_quad_space(corners))
 
 
 class ClassicHoughDetector(HoughQuadDetector):
@@ -129,7 +131,6 @@ class ProbabilisticHoughDetector(HoughQuadDetector):
 
     def _get_threshold(self):
         min_dist = np.min(self._quad_box_size)
-        print("min_dist: " + str(min_dist))
         return int(max((5, min_dist / 6)))
 
     def _merge_line_segments(self, segments, dir_vec):
@@ -154,9 +155,6 @@ class ProbabilisticHoughDetector(HoughQuadDetector):
         return geom.LineSegment2D(points[min_idx], points[max_idx], 0)
 
     def _merge_segments(self, segments):
-        slopes = [seg.get_slope_angle() for seg in segments]
-        slopes = np.array(slopes, dtype=np.float32)
-
         dir_vectors = [seg.get_dir_vector() for seg in segments]
         dir_vectors = np.array(dir_vectors, dtype=np.float32)
 
@@ -178,10 +176,9 @@ class ProbabilisticHoughDetector(HoughQuadDetector):
 
     def _find_segments(self):
         thresh = self._get_threshold()
-        min_line_length = min(self._quad_box_size) / 2
+        min_line_length = min(self._quad_box_size) / 4
 
-        print("threshold: " + str(thresh))
-        lines = cv2.HoughLinesP(self._working_img, 1, np.pi / 360, thresh, minLineLength=5)
+        lines = cv2.HoughLinesP(self._working_img, 1, np.pi / 180, thresh, minLineLength=min_line_length, maxLineGap=min_line_length/2)
         if lines is None or len(lines) < 3:
             raise NoLinesDetected
 
@@ -200,7 +197,8 @@ class ProbabilisticHoughDetector(HoughQuadDetector):
         #     cv2.imshow('houghlinesP', img)
         #     cv2.imshow('skeleton', self._skeleton)
         #     cv2.waitKey()
-
+        #
+        # print("Segments found: " + str(len(line_segments)))
         return line_segments
 
 

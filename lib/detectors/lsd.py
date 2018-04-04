@@ -6,6 +6,7 @@ import lib.structures.quad as quad
 import itertools
 import lib.graphics.renderer as rend
 from lib.detectors.detector import QuadDetector
+from lib.detectors.detector import BaseNotFound, IntersectionNotFound
 
 
 class LSDQuadDetector(QuadDetector):
@@ -67,15 +68,19 @@ class LSDQuadDetector(QuadDetector):
         if lines.shape[0] == 6:
             pairs = self._find_pairs(lines)
             lines_merged = self._merge_pairs_long(pairs)
-            corners = self._find_corners(lines_merged)
-            if corners:
-                return quad.Quad(self._scale_to_quad_space(corners))
-            return None
         elif lines.shape[0] == 3:
-            corners = self._find_corners(lines)
-            if corners:
-                return quad.Quad(corners)
+            lines_merged = lines
+        else:
             return None
+
+        try:
+            corners = self._find_corners(lines_merged)
+        except (BaseNotFound, IntersectionNotFound) as e:
+            return None
+
+        if corners:
+            return quad.Quad(self._scale_to_quad_space(corners))
+        return None
 
 
 def test():
