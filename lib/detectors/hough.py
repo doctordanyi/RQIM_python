@@ -14,9 +14,8 @@ class NoLinesDetected(Exception):
 
 class HoughQuadDetector(detector.QuadDetector):
     def __init__(self):
-        self._working_img = None
+        super().__init__()
         self._skeleton = None
-        self._quad_box_size = None
 
     def _init_iteration(self, img):
         self._orig_img = img
@@ -26,14 +25,6 @@ class HoughQuadDetector(detector.QuadDetector):
         self._working_img = cv2.threshold(img, thresh=127, maxval=255, type=cv2.THRESH_BINARY_INV)[1]
         self._set_bounding_box_size()
         self._skeletonize()
-
-    def _set_bounding_box_size(self):
-        contours = cv2.findContours(self._working_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        min_rect = cv2.minAreaRect(contours[1][0])
-        box = cv2.boxPoints(min_rect)
-        dist = [bg.distance(box[0], pt) for pt in box[1:]]
-        dist.sort()
-        self._quad_box_size = tuple(dist[0:-1])
 
     def _skeletonize(self):
         self._skeleton = np.zeros(self._working_img.shape, np.uint8)
@@ -157,6 +148,8 @@ class ProbabilisticHoughDetector(HoughQuadDetector):
     def _merge_segments(self, segments):
         dir_vectors = [seg.get_dir_vector() for seg in segments]
         dir_vectors = np.array(dir_vectors, dtype=np.float32)
+        if np.isnan(dir_vectors).any():
+            raise NoLinesDetected
 
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0)
         compactness, labels, centers = cv2.kmeans(dir_vectors, 3, None, criteria=criteria, attempts=10, flags=cv2.KMEANS_RANDOM_CENTERS)

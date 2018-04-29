@@ -1,5 +1,6 @@
 import itertools
 import numpy as np
+import cv2
 import lib.structures.basic_geometry as shapes
 import lib.utils.geometry as geom
 
@@ -14,6 +15,10 @@ class IntersectionNotFound(Exception):
 
 class QuadDetector:
     """Base class for Quad detectors"""
+    def __init__(self):
+        self._working_img = None
+        self._quad_box_size = None
+
     def detect_quad(self, img):
         raise NotImplemented("A detector must implement this")
 
@@ -55,3 +60,12 @@ class QuadDetector:
             outer.append(line[np.argmax(dist)])
 
         return [outer[0], inner[0], inner[1], outer[1]]
+
+    def _set_bounding_box_size(self):
+        contours = cv2.findContours(self._working_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        min_rect = cv2.minAreaRect(contours[1][0])
+        box = cv2.boxPoints(min_rect)
+        dist = [geom.distance(box[0], pt) for pt in box[1:]]
+        dist.sort()
+        self._quad_box_size = tuple(dist[0:-1])
+

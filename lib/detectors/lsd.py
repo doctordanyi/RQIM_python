@@ -11,6 +11,7 @@ from lib.detectors.detector import BaseNotFound, IntersectionNotFound
 
 class LSDQuadDetector(QuadDetector):
     def __init__(self):
+        super().__init__()
         self.lsd = cv2.createLineSegmentDetector()
 
     def _find_parallel(self, point, other_points):
