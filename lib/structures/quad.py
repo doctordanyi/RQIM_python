@@ -55,6 +55,14 @@ class Quad:
         base = base.rotate(np.pi / 2)
         return np.arctan2(base.x, base.y)
 
+    def get_quad_params(self):
+        return {'base_length': self.get_base_length(),
+                'b_mul': self.get_b_multiplier(),
+                'c_mul': self.get_c_multiplier(),
+                'b_angle': self.get_b_angle(),
+                'c_angle': self.get_c_angle(),
+                'orient': self.get_orientation()}
+
     def get_area(self):
         a = (self.corners[0].x - self.corners[2].x, self.corners[0].y - self.corners[2].y)
         b = (self.corners[1].x - self.corners[3].x, self.corners[1].y - self.corners[3].y)
@@ -257,6 +265,24 @@ def get_abs_base_length_error(orig, other):
 def get_rel_base_length_error(orig, other):
     return get_abs_base_length_error(orig, other) / orig.get_base_length()
 
+
+def get_abs_param_space_error(orig, other):
+    error = 0
+    orig_params = orig.get_quad_params()
+    other_params = other.get_quad_params()
+    for key in orig_params:
+        error += (orig_params[key] - other_params[key])^2
+
+    return m.sqrt(error)
+
+
+def get_rel_param_space_error(orig, other):
+    abs_error = get_abs_param_space_error(orig, other)
+    norm = 0
+    for param in orig.get_quad_params().values():
+        norm += param^2
+
+    return abs_error / m.sqrt(norm)
 
 def test():
     quad = create_from_params(4, m.pi / 4, m.pi / 4, m.sqrt(2) / 4, m.sqrt(2) / 4, -np.pi / 2)
